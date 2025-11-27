@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Upload, Download, Plus } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import * as XLSX from "xlsx"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -28,6 +29,20 @@ export function ClientsTab() {
         a.download = "clients_template.csv"
         a.click()
         window.URL.revokeObjectURL(url)
+    }
+
+    const handleExport = () => {
+        if (!clients) return
+
+        const worksheet = XLSX.utils.json_to_sheet(clients.map(c => ({
+            Name: c.name,
+            Phone: c.phone,
+            Email: c.email,
+            Joined: new Date(c.created_at).toLocaleDateString()
+        })))
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Clients")
+        XLSX.writeFile(workbook, "clients_export.xlsx")
     }
 
     const handleUpload = async () => {
@@ -77,6 +92,10 @@ export function ClientsTab() {
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Clients Management</CardTitle>
                 <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleExport}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export Excel
+                    </Button>
                     <Button variant="outline" onClick={handleDownloadTemplate}>
                         <Download className="mr-2 h-4 w-4" />
                         Template

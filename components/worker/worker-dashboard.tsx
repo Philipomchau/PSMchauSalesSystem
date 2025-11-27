@@ -246,6 +246,8 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
                             <SelectContent>
                               <SelectItem value="piece">Pcs</SelectItem>
                               <SelectItem value="kg">Kg</SelectItem>
+                              <SelectItem value="pct">Pct</SelectItem>
+                              <SelectItem value="box">Box</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -353,6 +355,7 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
                       <TableRow>
                         <TableHead>Date/Time</TableHead>
                         <TableHead>Product</TableHead>
+                        <TableHead>Notes</TableHead>
                         <TableHead className="text-right">Qty</TableHead>
                         <TableHead className="text-right">Price</TableHead>
                         <TableHead className="text-right">Total</TableHead>
@@ -363,6 +366,7 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
                         <TableRow key={sale.id}>
                           <TableCell className="font-mono text-sm">{formatDateTime(sale.sale_datetime)}</TableCell>
                           <TableCell>{sale.product_name}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">{sale.notes || "-"}</TableCell>
                           <TableCell className="text-right">{sale.quantity}</TableCell>
                           <TableCell className="text-right">
                             {Number.parseFloat(sale.unit_price.toString()).toLocaleString("en-TZ")}
@@ -374,7 +378,7 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
                       ))}
                       {(!sales || sales.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                             No sales recorded for this period
                           </TableCell>
                         </TableRow>

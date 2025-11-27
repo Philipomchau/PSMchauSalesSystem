@@ -49,7 +49,12 @@ export function WorkersTab() {
       const res = await fetch("/api/admin/workers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password: password.trim(),
+          role
+        }),
       })
 
       if (res.ok) {
@@ -72,8 +77,8 @@ export function WorkersTab() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: editingWorker.name,
-          email: editingWorker.email,
+          name: editingWorker.name.trim(),
+          email: editingWorker.email.trim(),
           role: editingWorker.role,
         }),
       })
@@ -93,7 +98,7 @@ export function WorkersTab() {
       await fetch(`/api/admin/workers/${resetPasswordId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ password: newPassword.trim() }),
       })
       mutateWorkers()
       resetForm()
@@ -199,9 +204,8 @@ export function WorkersTab() {
                 <TableCell>{worker.email}</TableCell>
                 <TableCell>
                   <span
-                    className={`px-2 py-1 text-xs font-medium ${
-                      worker.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                    }`}
+                    className={`px-2 py-1 text-xs font-medium ${worker.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                      }`}
                   >
                     {worker.role.toUpperCase()}
                   </span>

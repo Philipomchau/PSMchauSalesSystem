@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await sql`
-      SELECT * FROM workers WHERE email = ${email}
+      SELECT * FROM workers WHERE email = ${email.toLowerCase()}
     `
 
     if (result.length === 0) {

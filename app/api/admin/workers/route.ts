@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const result = await sql`
       INSERT INTO workers (name, email, password_hash, role)
-      VALUES (${name}, ${email}, ${passwordHash}, ${role})
+      VALUES (${name}, ${email.toLowerCase()}, ${passwordHash}, ${role})
       RETURNING id, name, email, role, created_at
     `
 

@@ -23,7 +23,7 @@ export type Sale = {
   created_at: string
   updated_at: string
   worker_name?: string
-  unit_type?: "piece" | "kg"
+  unit_type?: "piece" | "kg" | "pct" | "box"
   client_id?: number | null
 }
 

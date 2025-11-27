@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       result = await sql`
         UPDATE workers SET
           name = ${name || existing[0].name},
-          email = ${email || existing[0].email},
+          email = ${(email || existing[0].email).toLowerCase()},
           password_hash = ${passwordHash},
           role = ${role || existing[0].role}
         WHERE id = ${workerId}
@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       result = await sql`
         UPDATE workers SET
           name = ${name || existing[0].name},
-          email = ${email || existing[0].email},
+          email = ${(email || existing[0].email).toLowerCase()},
           role = ${role || existing[0].role}
         WHERE id = ${workerId}
         RETURNING id, name, email, role, created_at
@@ -41,7 +41,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const afterData = { name: result[0].name, email: result[0].email, role: result[0].role }
-    await logAudit(admin.id, "UPDATE_WORKER", null, beforeData, afterData)
+
+    try {
+      await logAudit(admin.id, "UPDATE_WORKER", null, beforeData, afterData)
+    } catch (error) {
+      console.error("Audit log error (non-fatal):", error)
+    }
 
     return NextResponse.json(result[0])
   } catch (error) {

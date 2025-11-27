@@ -59,16 +59,28 @@ export async function GET(request: NextRequest) {
         GROUP BY w.id, w.name
         ORDER BY total_revenue DESC
       `
-      const [summary, topProducts, workerPerformance] = await Promise.all([
+      const [summary, topProducts, workerPerformance, dailyWorkerEarnings] = await Promise.all([
         sql.query(summaryQuery, params),
         sql.query(topProductsQuery, params),
         sql.query(workerPerformanceQuery, params),
+        sql.query(`
+          SELECT 
+            w.name,
+            COALESCE(SUM(s.total_amount), 0) as total_revenue,
+            COUNT(s.id) as total_sales
+          FROM workers w
+          LEFT JOIN sales s ON s.worker_id = w.id ${dateFilter ? `AND 1=1 ${dateFilter}` : ""}
+          WHERE w.role = 'worker'
+          GROUP BY w.id, w.name
+          ORDER BY total_revenue DESC
+        `, params)
       ])
 
       return NextResponse.json({
         summary: summary[0],
         topProducts: topProducts,
         workerPerformance: workerPerformance,
+        dailyWorkerEarnings: dailyWorkerEarnings,
       })
     }
 
