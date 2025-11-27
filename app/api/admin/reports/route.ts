@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
     const params: string[] = []
 
     if (startDate) {
-      dateFilter += ` AND s.sale_datetime >= $${params.length + 1}`
+      dateFilter += ` AND DATE(s.sale_datetime AT TIME ZONE 'Africa/Dar_es_Salaam') >= $${params.length + 1}`
       params.push(startDate)
     }
     if (endDate) {
-      dateFilter += ` AND s.sale_datetime <= $${params.length + 1}`
+      dateFilter += ` AND DATE(s.sale_datetime AT TIME ZONE 'Africa/Dar_es_Salaam') <= $${params.length + 1}`
       params.push(endDate)
     }
 

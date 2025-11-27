@@ -42,8 +42,8 @@ export function ReportsTab() {
     const buildUrl = (type: string) => {
         const params = new URLSearchParams()
         params.set("type", type)
-        if (startDate) params.set("startDate", new Date(startDate).toISOString())
-        if (endDate) params.set("endDate", new Date(endDate).toISOString())
+        if (startDate) params.set("startDate", startDate)
+        if (endDate) params.set("endDate", endDate)
         return `/api/admin/reports?${params.toString()}`
     }
 
