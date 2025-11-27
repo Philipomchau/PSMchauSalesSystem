@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LayoutDashboard, ShoppingCart, Users, BarChart3, LogOut, Settings, UserSquare2, AlertTriangle, FileText, Download } from "lucide-react"
+import * as XLSX from "xlsx"
+import { formatCurrency } from "@/lib/utils"
 import { OverviewTab } from "@/components/admin/tabs/overview-tab"
 import { SalesTab } from "@/components/admin/tabs/sales-tab"
 import { WorkersTab } from "@/components/admin/tabs/workers-tab"
@@ -27,9 +29,29 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
     router.push("/login")
   }
 
-  const handleExport = async (format: string) => {
-    const url = `/api/admin/export?format=${format}&dataType=sales`
-    window.open(url, "_blank")
+  const handleExcelExport = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const res = await fetch(`/api/admin/reports?type=daily&startDate=${today}&endDate=${today}`)
+      const data = await res.json()
+
+      if (!data.dailyWorkerEarnings) {
+        alert("No data available for today")
+        return
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(data.dailyWorkerEarnings.map((w: any) => ({
+        Worker: w.name,
+        "Total Sales": w.total_sales,
+        "Total Revenue": w.total_revenue
+      })))
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Performance")
+      XLSX.writeFile(workbook, `daily_performance_${today}.xlsx`)
+    } catch (error) {
+      console.error("Export failed:", error)
+      alert("Failed to export data")
+    }
   }
 
   return (
@@ -42,9 +64,9 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
             <p className="text-sm text-muted-foreground">Logged in as {admin.name}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleExport("csv")}>
+            <Button variant="outline" size="sm" onClick={handleExcelExport}>
               <Download className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Export CSV</span>
+              <span className="hidden md:inline">Export Daily Report</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />

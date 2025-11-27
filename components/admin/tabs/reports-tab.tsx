@@ -20,16 +20,24 @@ import {
     Pie,
     Cell
 } from 'recharts';
-import { Loader2, TrendingUp, Users, Package, DollarSign, Calendar } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Loader2, TrendingUp, Users, Package, DollarSign, Calendar, Download } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import * as XLSX from "xlsx"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export function ReportsTab() {
-    const [startDate, setStartDate] = useState("")
-    const [endDate, setEndDate] = useState("")
+    const [startDate, setStartDate] = useState(() => {
+        const now = new Date()
+        return now.toISOString().split('T')[0]
+    })
+    const [endDate, setEndDate] = useState(() => {
+        const now = new Date()
+        return now.toISOString().split('T')[0]
+    })
 
     const buildUrl = (type: string) => {
         const params = new URLSearchParams()
@@ -73,6 +81,19 @@ export function ReportsTab() {
         revenue: Number(item.total_revenue),
         sales: Number(item.total_sales)
     })) || []
+
+    const handleWorkerExport = () => {
+        if (!dailyWorkerEarnings) return
+
+        const worksheet = XLSX.utils.json_to_sheet(dailyWorkerEarnings.map((w: any) => ({
+            Worker: w.name,
+            "Total Sales": w.total_sales,
+            "Total Revenue": w.total_revenue
+        })))
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Worker Performance")
+        XLSX.writeFile(workbook, `worker_performance_${startDate || 'all'}.xlsx`)
+    }
 
     return (
         <div className="space-y-6">
@@ -259,29 +280,44 @@ export function ReportsTab() {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Individual Earnings</CardTitle>
-                                <CardDescription>Earnings breakdown for the selected period</CardDescription>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle>Individual Earnings</CardTitle>
+                                    <CardDescription>Earnings breakdown for the selected period</CardDescription>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={handleWorkerExport}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Export
+                                </Button>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    {dailyWorkerEarnings?.map((worker: any) => (
-                                        <div key={worker.name} className="flex items-center justify-between p-4 border rounded-lg">
-                                            <div>
-                                                <p className="font-medium">{worker.name}</p>
-                                                <p className="text-sm text-muted-foreground">{worker.total_sales} sales</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-lg text-primary">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Worker</TableHead>
+                                            <TableHead className="text-right">Sales</TableHead>
+                                            <TableHead className="text-right">Revenue</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {dailyWorkerEarnings?.map((worker: any) => (
+                                            <TableRow key={worker.name}>
+                                                <TableCell className="font-medium">{worker.name}</TableCell>
+                                                <TableCell className="text-right">{worker.total_sales}</TableCell>
+                                                <TableCell className="text-right font-bold text-primary">
                                                     {formatCurrency(Number(worker.total_revenue))}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(!dailyWorkerEarnings || dailyWorkerEarnings.length === 0) && (
-                                        <p className="text-center text-muted-foreground py-8">No data available</p>
-                                    )}
-                                </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {(!dailyWorkerEarnings || dailyWorkerEarnings.length === 0) && (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                                                    No data available for this period
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
                     </div>
