@@ -26,9 +26,9 @@ interface AdminDashboardProps {
 export function AdminDashboard({ admin }: AdminDashboardProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
-  const [exportDate, setExportDate] = useState(() => {
-    const now = new Date()
-    return now.toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+  const [dateRange, setDateRange] = useState({
+    start: new Date().toLocaleDateString('en-CA'),
+    end: new Date().toLocaleDateString('en-CA')
   })
   const [exportOpen, setExportOpen] = useState(false)
 
@@ -37,14 +37,37 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
     router.push("/login")
   }
 
+  const setQuickDate = (type: 'today' | 'yesterday' | 'week' | 'month') => {
+    const end = new Date()
+    const start = new Date()
+
+    switch (type) {
+      case 'yesterday':
+        start.setDate(start.getDate() - 1)
+        end.setDate(end.getDate() - 1)
+        break
+      case 'week':
+        start.setDate(start.getDate() - 7)
+        break
+      case 'month':
+        start.setMonth(start.getMonth() - 1)
+        break
+    }
+
+    setDateRange({
+      start: start.toLocaleDateString('en-CA'),
+      end: end.toLocaleDateString('en-CA')
+    })
+  }
+
   const handleExcelExport = async () => {
     try {
-      if (!exportDate) {
-        alert("Please select a date")
+      if (!dateRange.start || !dateRange.end) {
+        alert("Please select a date range")
         return
       }
 
-      const res = await fetch(`/api/admin/reports?type=daily&startDate=${exportDate}&endDate=${exportDate}`)
+      const res = await fetch(`/api/admin/reports?type=daily&startDate=${dateRange.start}&endDate=${dateRange.end}`)
       const data = await res.json()
 
       if (!data.dailyWorkerEarnings) {
@@ -59,7 +82,7 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
       })))
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Performance")
-      XLSX.writeFile(workbook, `daily_performance_${exportDate}.xlsx`)
+      XLSX.writeFile(workbook, `performance_${dateRange.start}_to_${dateRange.end}.xlsx`)
       setExportOpen(false)
     } catch (error) {
       console.error("Export failed:", error)
@@ -89,14 +112,32 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
                   <DialogTitle>Export Daily Report</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="export-date">Select Date</Label>
-                    <Input
-                      id="export-date"
-                      type="date"
-                      value={exportDate}
-                      onChange={(e) => setExportDate(e.target.value)}
-                    />
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <Button variant="outline" size="sm" onClick={() => setQuickDate('today')}>Today</Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickDate('yesterday')}>Yesterday</Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickDate('week')}>Last 7 Days</Button>
+                    <Button variant="outline" size="sm" onClick={() => setQuickDate('month')}>Last 30 Days</Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="start-date">From</Label>
+                      <Input
+                        id="start-date"
+                        type="date"
+                        value={dateRange.start}
+                        onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end-date">To</Label>
+                      <Input
+                        id="end-date"
+                        type="date"
+                        value={dateRange.end}
+                        onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <Button onClick={handleExcelExport} className="w-full">
                     <Download className="mr-2 h-4 w-4" />
