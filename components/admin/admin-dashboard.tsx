@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { LayoutDashboard, ShoppingCart, Users, BarChart3, LogOut, Settings, UserSquare2, AlertTriangle, FileText, Download } from "lucide-react"
 import * as XLSX from "xlsx"
 import { formatCurrency } from "@/lib/utils"
+import { toast } from "sonner"
 import { OverviewTab } from "@/components/admin/tabs/overview-tab"
 import { SalesTab } from "@/components/admin/tabs/sales-tab"
 import { WorkersTab } from "@/components/admin/tabs/workers-tab"
@@ -63,7 +64,7 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
   const handleExcelExport = async () => {
     try {
       if (!dateRange.start || !dateRange.end) {
-        alert("Please select a date range")
+        toast.error("Please select a date range")
         return
       }
 
@@ -72,7 +73,7 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
       const data = await res.json()
 
       if (!data.dailyWorkerEarnings || data.dailyWorkerEarnings.length === 0) {
-        alert("No data available for this period")
+        toast.error("No data available for this period")
         return
       }
 
@@ -85,9 +86,10 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Performance")
       XLSX.writeFile(workbook, `performance_${dateRange.start}_to_${dateRange.end}.xlsx`)
       setExportOpen(false)
+      toast.success("Report exported successfully")
     } catch (error) {
       console.error("Export failed:", error)
-      alert("Failed to export data")
+      toast.error("Failed to export data")
     }
   }
 

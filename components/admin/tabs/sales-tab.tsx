@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pencil, Trash2, Search, Loader2 } from "lucide-react"
 import { formatDateTime } from "@/lib/timezone"
+import { toast } from "sonner"
 import type { Sale, Worker } from "@/lib/db"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -47,10 +48,10 @@ export function SalesTab() {
         throw new Error(error.error || "Failed to delete sale")
       }
       mutateSales()
-      alert("Sale deleted successfully")
+      toast.success("Sale deleted successfully")
     } catch (error) {
       console.error("Delete failed:", error)
-      alert("Failed to delete sale. Please try again.")
+      toast.error("Failed to delete sale. Please try again.")
     }
   }
 

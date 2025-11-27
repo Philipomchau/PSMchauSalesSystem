@@ -62,10 +62,20 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "Sale not found" }, { status: 404 })
     }
 
+    // Delete related records first to avoid foreign key constraint violations
+    await sql`DELETE FROM suspicious_activity WHERE sale_id = ${saleId}`
+    await sql`DELETE FROM audit_logs WHERE sale_id = ${saleId}`
+
+    // Now delete the sale
     await sql`DELETE FROM sales WHERE id = ${saleId}`
 
-    // Log audit
-    await logAudit(admin.id, "DELETE_SALE", saleId, existing[0], null)
+    // Log audit for the deletion itself
+    try {
+      await logAudit(admin.id, "DELETE_SALE", saleId, existing[0], null)
+    } catch (auditError) {
+      // Don't fail the deletion if audit logging fails
+      console.error("Audit log failed:", auditError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
