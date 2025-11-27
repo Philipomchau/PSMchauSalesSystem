@@ -40,8 +40,18 @@ export function SalesTab() {
   const handleDelete = async (saleId: number) => {
     if (!confirm("Are you sure you want to delete this sale?")) return
 
-    await fetch(`/api/sales/${saleId}`, { method: "DELETE" })
-    mutateSales()
+    try {
+      const res = await fetch(`/api/sales/${saleId}`, { method: "DELETE" })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || "Failed to delete sale")
+      }
+      mutateSales()
+      alert("Sale deleted successfully")
+    } catch (error) {
+      console.error("Delete failed:", error)
+      alert("Failed to delete sale. Please try again.")
+    }
   }
 
   const handleEdit = async (e: React.FormEvent) => {

@@ -67,11 +67,12 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
         return
       }
 
-      const res = await fetch(`/api/admin/reports?type=daily&startDate=${dateRange.start}&endDate=${dateRange.end}`)
+      // Use type=summary to get dailyWorkerEarnings
+      const res = await fetch(`/api/admin/reports?type=summary&startDate=${dateRange.start}&endDate=${dateRange.end}`)
       const data = await res.json()
 
-      if (!data.dailyWorkerEarnings) {
-        alert("No data available for today")
+      if (!data.dailyWorkerEarnings || data.dailyWorkerEarnings.length === 0) {
+        alert("No data available for this period")
         return
       }
 
@@ -107,7 +108,7 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
                   <span className="hidden md:inline">Export Daily Report</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground border-border">
                 <DialogHeader>
                   <DialogTitle>Export Daily Report</DialogTitle>
                 </DialogHeader>
@@ -139,10 +140,15 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
                       />
                     </div>
                   </div>
-                  <Button onClick={handleExcelExport} className="w-full">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Excel
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="w-full" onClick={() => setExportOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleExcelExport} className="w-full">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export
+                    </Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
