@@ -15,9 +15,10 @@ export async function GET(request: NextRequest) {
     const product = searchParams.get("product")
 
     let query = `
-      SELECT s.*, w.name as worker_name 
+      SELECT s.*, w.name as worker_name, c.name as client_name
       FROM sales s 
       JOIN workers w ON s.worker_id = w.id 
+      LEFT JOIN clients c ON s.client_id = c.id
       WHERE 1=1
     `
     const params: (string | number)[] = []

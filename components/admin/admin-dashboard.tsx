@@ -68,25 +68,87 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
         return
       }
 
-      // Use type=summary to get dailyWorkerEarnings
-      const res = await fetch(`/api/admin/reports?type=summary&startDate=${dateRange.start}&endDate=${dateRange.end}`)
-      const data = await res.json()
+      // Fetch comprehensive sales data
+      const salesParams = new URLSearchParams()
+      salesParams.set("startDate", new Date(dateRange.start).toISOString())
+      salesParams.set("endDate", new Date(dateRange.end).toISOString())
 
-      if (!data.dailyWorkerEarnings || data.dailyWorkerEarnings.length === 0) {
-        toast.error("No data available for this period")
+      const [salesRes, reportsRes] = await Promise.all([
+        fetch(`/api/sales?${salesParams.toString()}`),
+        fetch(`/api/admin/reports?type=summary&startDate=${dateRange.start}&endDate=${dateRange.end}`)
+      ])
+
+      const sales = await salesRes.json()
+      const reports = await reportsRes.json()
+
+      if (!sales || sales.length === 0) {
+        toast.error("No sales data available for this period")
         return
       }
 
-      const worksheet = XLSX.utils.json_to_sheet(data.dailyWorkerEarnings.map((w: any) => ({
-        Worker: w.name,
-        "Total Sales": w.total_sales,
-        "Total Revenue": w.total_revenue
-      })))
+      // Create workbook with multiple sheets
       const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Performance")
-      XLSX.writeFile(workbook, `performance_${dateRange.start}_to_${dateRange.end}.xlsx`)
+
+      // Sheet 1: Detailed Sales
+      const salesData = sales.map((sale: any) => ({
+        "Date/Time": new Date(sale.sale_datetime).toLocaleString('en-TZ', {
+          timeZone: 'Africa/Dar_es_Salaam',
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        }),
+        "Worker": sale.worker_name || "N/A",
+        "Product": sale.product_name,
+        "Quantity": sale.quantity,
+        "Unit": sale.unit_type || "piece",
+        "Unit Price": Number(sale.unit_price).toLocaleString('en-TZ'),
+        "Total Amount": Number(sale.total_amount).toLocaleString('en-TZ'),
+        "Client": sale.client_name || "Walk-in",
+        "Notes": sale.notes || "-"
+      }))
+      const salesSheet = XLSX.utils.json_to_sheet(salesData)
+      XLSX.utils.book_append_sheet(workbook, salesSheet, "Detailed Sales")
+
+      // Sheet 2: Worker Performance
+      if (reports.workerPerformance && reports.workerPerformance.length > 0) {
+        const workerData = reports.workerPerformance.map((w: any) => ({
+          "Worker Name": w.name,
+          "Total Sales": w.total_sales,
+          "Total Revenue": Number(w.total_revenue).toLocaleString('en-TZ'),
+          "Average Sale": Number(w.avg_sale_value).toLocaleString('en-TZ')
+        }))
+        const workerSheet = XLSX.utils.json_to_sheet(workerData)
+        XLSX.utils.book_append_sheet(workbook, workerSheet, "Worker Performance")
+      }
+
+      // Sheet 3: Top Products
+      if (reports.topProducts && reports.topProducts.length > 0) {
+        const productData = reports.topProducts.map((p: any) => ({
+          "Product": p.product_name,
+          "Total Quantity Sold": p.total_quantity,
+          "Total Revenue": Number(p.total_revenue).toLocaleString('en-TZ'),
+          "Number of Sales": p.sale_count
+        }))
+        const productSheet = XLSX.utils.json_to_sheet(productData)
+        XLSX.utils.book_append_sheet(workbook, productSheet, "Top Products")
+      }
+
+      // Sheet 4: Summary
+      if (reports.summary) {
+        const summaryData = [
+          { "Metric": "Total Sales", "Value": reports.summary.total_sales },
+          { "Metric": "Total Revenue", "Value": Number(reports.summary.total_revenue).toLocaleString('en-TZ') },
+          { "Metric": "Total Quantity", "Value": reports.summary.total_quantity },
+          { "Metric": "Active Workers", "Value": reports.summary.active_workers },
+          { "Metric": "Unique Products", "Value": reports.summary.unique_products }
+        ]
+        const summarySheet = XLSX.utils.json_to_sheet(summaryData)
+        XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary")
+      }
+
+      const filename = `sales_report_${dateRange.start}_to_${dateRange.end}.xlsx`
+      XLSX.writeFile(workbook, filename)
       setExportOpen(false)
-      toast.success("Report exported successfully")
+      toast.success("Comprehensive report exported successfully")
     } catch (error) {
       console.error("Export failed:", error)
       toast.error("Failed to export data")
@@ -110,12 +172,12 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
                   <span className="hidden md:inline">Export Daily Report</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground border-border">
+              <DialogContent className="sm:max-w-[500px] bg-card text-card-foreground border-border">
                 <DialogHeader>
-                  <DialogTitle>Export Daily Report</DialogTitle>
+                  <DialogTitle>Export Sales Report</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button variant="outline" size="sm" onClick={() => setQuickDate('today')}>Today</Button>
                     <Button variant="outline" size="sm" onClick={() => setQuickDate('yesterday')}>Yesterday</Button>
                     <Button variant="outline" size="sm" onClick={() => setQuickDate('week')}>Last 7 Days</Button>
@@ -142,11 +204,22 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
                       />
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="w-full" onClick={() => setExportOpen(false)}>
+
+                  <div className="bg-muted/50 p-3 rounded-md text-sm">
+                    <p className="font-medium mb-1">Export includes:</p>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <li>Detailed sales with worker & client info</li>
+                      <li>Worker performance summary</li>
+                      <li>Top products analysis</li>
+                      <li>Overall statistics</li>
+                    </ul>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="outline" className="flex-1" onClick={() => setExportOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleExcelExport} className="w-full">
+                    <Button onClick={handleExcelExport} className="flex-1">
                       <Download className="mr-2 h-4 w-4" />
                       Export
                     </Button>
