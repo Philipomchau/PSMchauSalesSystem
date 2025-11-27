@@ -69,9 +69,16 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
       }
 
       // Fetch comprehensive sales data
+      // Create proper date ranges for the full day
+      const startOfDay = new Date(dateRange.start)
+      startOfDay.setHours(0, 0, 0, 0)
+
+      const endOfDay = new Date(dateRange.end)
+      endOfDay.setHours(23, 59, 59, 999)
+
       const salesParams = new URLSearchParams()
-      salesParams.set("startDate", new Date(dateRange.start).toISOString())
-      salesParams.set("endDate", new Date(dateRange.end).toISOString())
+      salesParams.set("startDate", startOfDay.toISOString())
+      salesParams.set("endDate", endOfDay.toISOString())
 
       const [salesRes, reportsRes] = await Promise.all([
         fetch(`/api/sales?${salesParams.toString()}`),
