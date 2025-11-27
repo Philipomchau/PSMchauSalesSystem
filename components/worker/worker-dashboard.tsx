@@ -117,6 +117,7 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
       setTimeout(() => setSubmitStatus("idle"), 3000)
     } catch (error) {
       setSubmitStatus("error")
+      console.error("Sale submission error:", error)
       setSubmitMessage(error instanceof Error ? error.message : "Failed to record sale")
     } finally {
       setSubmitting(false)

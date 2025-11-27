@@ -41,8 +41,9 @@ export default function LoginPage() {
       } else {
         router.push("/worker")
       }
-    } catch {
-      setError("An error occurred. Please try again.")
+    } catch (err) {
+      console.error("Login error:", err)
+      setError(err instanceof Error ? err.message : "An error occurred. Please try again.")
     } finally {
       setLoading(false)
     }
