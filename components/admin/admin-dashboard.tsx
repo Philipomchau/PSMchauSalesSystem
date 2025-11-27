@@ -4,6 +4,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { LayoutDashboard, ShoppingCart, Users, BarChart3, LogOut, Settings, UserSquare2, AlertTriangle, FileText, Download } from "lucide-react"
 import * as XLSX from "xlsx"
 import { formatCurrency } from "@/lib/utils"
@@ -23,6 +26,11 @@ interface AdminDashboardProps {
 export function AdminDashboard({ admin }: AdminDashboardProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
+  const [exportDate, setExportDate] = useState(() => {
+    const now = new Date()
+    return now.toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+  })
+  const [exportOpen, setExportOpen] = useState(false)
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
@@ -31,8 +39,12 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
 
   const handleExcelExport = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0]
-      const res = await fetch(`/api/admin/reports?type=daily&startDate=${today}&endDate=${today}`)
+      if (!exportDate) {
+        alert("Please select a date")
+        return
+      }
+
+      const res = await fetch(`/api/admin/reports?type=daily&startDate=${exportDate}&endDate=${exportDate}`)
       const data = await res.json()
 
       if (!data.dailyWorkerEarnings) {
@@ -47,7 +59,8 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
       })))
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Performance")
-      XLSX.writeFile(workbook, `daily_performance_${today}.xlsx`)
+      XLSX.writeFile(workbook, `daily_performance_${exportDate}.xlsx`)
+      setExportOpen(false)
     } catch (error) {
       console.error("Export failed:", error)
       alert("Failed to export data")
@@ -64,10 +77,34 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
             <p className="text-sm text-muted-foreground">Logged in as {admin.name}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExcelExport}>
-              <Download className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Export Daily Report</span>
-            </Button>
+            <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Export Daily Report</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Export Daily Report</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="export-date">Select Date</Label>
+                    <Input
+                      id="export-date"
+                      type="date"
+                      value={exportDate}
+                      onChange={(e) => setExportDate(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleExcelExport} className="w-full">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Excel
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
