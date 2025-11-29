@@ -332,7 +332,7 @@ export function WorkersTab({ isSuperAdmin }: WorkersTabProps) {
                       </Dialog>
 
                       {/* Reset Password Dialog */}
-                      {worker.role !== "admin" && (
+                      {isSuperAdmin && (
                         <Dialog
                           open={resetPasswordId === worker.id}
                           onOpenChange={(open) => {
