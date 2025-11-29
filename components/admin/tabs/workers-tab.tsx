@@ -332,46 +332,48 @@ export function WorkersTab({ isSuperAdmin }: WorkersTabProps) {
                       </Dialog>
 
                       {/* Reset Password Dialog */}
-                      <Dialog
-                        open={resetPasswordId === worker.id}
-                        onOpenChange={(open) => {
-                          if (open) setResetPasswordId(worker.id)
-                          else resetForm()
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="icon">
-                            <Key className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Reset Password for {worker.name}</DialogTitle>
-                          </DialogHeader>
-                          <form onSubmit={handleResetPassword} className="space-y-4">
-                            <div className="space-y-2">
-                              <Label>New Password</Label>
-                              <Input
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Enter new password"
-                                required
-                              />
-                            </div>
-                            <Button type="submit" className="w-full" disabled={saving}>
-                              {saving ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Resetting...
-                                </>
-                              ) : (
-                                "Reset Password"
-                              )}
+                      {worker.role !== "admin" && (
+                        <Dialog
+                          open={resetPasswordId === worker.id}
+                          onOpenChange={(open) => {
+                            if (open) setResetPasswordId(worker.id)
+                            else resetForm()
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="icon">
+                              <Key className="h-4 w-4" />
                             </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Reset Password for {worker.name}</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleResetPassword} className="space-y-4">
+                              <div className="space-y-2">
+                                <Label>New Password</Label>
+                                <Input
+                                  type="password"
+                                  value={newPassword}
+                                  onChange={(e) => setNewPassword(e.target.value)}
+                                  placeholder="Enter new password"
+                                  required
+                                />
+                              </div>
+                              <Button type="submit" className="w-full" disabled={saving}>
+                                {saving ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Resetting...
+                                  </>
+                                ) : (
+                                  "Reset Password"
+                                )}
+                              </Button>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      )}
 
                       <Button variant="outline" size="icon" onClick={() => handleDelete(worker.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
