@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Upload, Download, Plus } from "lucide-react"
+import { Loader2, Upload, Download, Plus, Trash2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import * as XLSX from "xlsx"
@@ -113,6 +113,26 @@ export function ClientsTab() {
         } catch (error) {
             console.error("Add client error:", error)
             alert("Failed to add client")
+        }
+
+        const handleDelete = async (clientId: number) => {
+            if (!confirm("Are you sure you want to delete this client?")) return
+
+            try {
+                const res = await fetch(`/api/admin/clients/${clientId}`, { method: "DELETE" })
+
+                if (!res.ok) {
+                    const error = await res.json()
+                    alert(error.error || "Failed to delete client")
+                    return
+                }
+
+                mutate()
+                alert("Client deleted successfully")
+            } catch (error) {
+                console.error("Delete failed:", error)
+                alert("Failed to delete client. Please try again.")
+            }
         } finally {
             setSaving(false)
         }
@@ -227,6 +247,7 @@ export function ClientsTab() {
                                 <TableHead>Phone</TableHead>
                                 <TableHead>Email</TableHead>
                                 <TableHead>Joined</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -236,6 +257,15 @@ export function ClientsTab() {
                                     <TableCell>{client.phone || "-"}</TableCell>
                                     <TableCell>{client.email || "-"}</TableCell>
                                     <TableCell>{new Date(client.created_at).toLocaleDateString()}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => handleDelete(client.id)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                             {(!clients || clients.length === 0) && (

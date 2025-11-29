@@ -110,8 +110,21 @@ export function WorkersTab() {
   const handleDelete = async (workerId: number) => {
     if (!confirm("Are you sure you want to delete this worker?")) return
 
-    await fetch(`/api/admin/workers/${workerId}`, { method: "DELETE" })
-    mutateWorkers()
+    try {
+      const res = await fetch(`/api/admin/workers/${workerId}`, { method: "DELETE" })
+
+      if (!res.ok) {
+        const error = await res.json()
+        alert(error.error || "Failed to delete worker")
+        return
+      }
+
+      mutateWorkers()
+      alert("Worker deleted successfully")
+    } catch (error) {
+      console.error("Delete failed:", error)
+      alert("Failed to delete worker. Please try again.")
+    }
   }
 
   return (
