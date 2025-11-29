@@ -113,28 +113,28 @@ export function ClientsTab() {
         } catch (error) {
             console.error("Add client error:", error)
             alert("Failed to add client")
-        }
-
-        const handleDelete = async (clientId: number) => {
-            if (!confirm("Are you sure you want to delete this client?")) return
-
-            try {
-                const res = await fetch(`/api/admin/clients/${clientId}`, { method: "DELETE" })
-
-                if (!res.ok) {
-                    const error = await res.json()
-                    alert(error.error || "Failed to delete client")
-                    return
-                }
-
-                mutate()
-                alert("Client deleted successfully")
-            } catch (error) {
-                console.error("Delete failed:", error)
-                alert("Failed to delete client. Please try again.")
-            }
         } finally {
             setSaving(false)
+        }
+    }
+
+    const handleDelete = async (clientId: number) => {
+        if (!confirm("Are you sure you want to delete this client?")) return
+
+        try {
+            const res = await fetch(`/api/admin/clients/${clientId}`, { method: "DELETE" })
+
+            if (!res.ok) {
+                const error = await res.json()
+                alert(error.error || "Failed to delete client")
+                return
+            }
+
+            mutate()
+            alert("Client deleted successfully")
+        } catch (error) {
+            console.error("Delete failed:", error)
+            alert("Failed to delete client. Please try again.")
         }
     }
 
