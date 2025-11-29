@@ -17,7 +17,11 @@ import type { Worker } from "@/lib/db"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-export function WorkersTab() {
+interface WorkersTabProps {
+  isSuperAdmin: boolean
+}
+
+export function WorkersTab({ isSuperAdmin }: WorkersTabProps) {
   const { data: workers, mutate: mutateWorkers } = useSWR<Worker[]>("/api/admin/workers", fetcher)
   const [isCreating, setIsCreating] = useState(false)
   const [editingWorker, setEditingWorker] = useState<Worker | null>(null)
@@ -152,73 +156,75 @@ export function WorkersTab() {
     <Card className="border-2">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Worker Accounts</CardTitle>
-        <Dialog
-          open={isCreating}
-          onOpenChange={(open) => {
-            setIsCreating(open)
-            if (!open) resetForm()
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Worker
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Worker Account</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required />
-              </div>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@company.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="worker">Worker</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="submit" className="w-full" disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Account"
-                )}
+        {isSuperAdmin && (
+          <Dialog
+            open={isCreating}
+            onOpenChange={(open) => {
+              setIsCreating(open)
+              if (!open) resetForm()
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Worker
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Worker Account</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="john@company.com"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="worker">Worker</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full" disabled={saving}>
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </CardHeader>
       <CardContent>
         <Table>
@@ -246,130 +252,134 @@ export function WorkersTab() {
                 </TableCell>
                 <TableCell className="font-mono text-sm">{formatDate(worker.created_at)}</TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleToggleActive(worker)}
-                      title={worker.active ? "Deactivate" : "Activate"}
-                    >
-                      {worker.active ? (
-                        <Power className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <PowerOff className="h-4 w-4 text-red-600" />
-                      )}
-                    </Button>
-                    <Dialog
-                      open={editingWorker?.id === worker.id}
-                      onOpenChange={(open) => {
-                        if (open) setEditingWorker(worker)
-                        else resetForm()
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Worker</DialogTitle>
-                        </DialogHeader>
-                        {editingWorker && (
-                          <form onSubmit={handleEdit} className="space-y-4">
+                  {isSuperAdmin ? (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleToggleActive(worker)}
+                        title={worker.active ? "Deactivate" : "Activate"}
+                      >
+                        {worker.active ? (
+                          <Power className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <PowerOff className="h-4 w-4 text-red-600" />
+                        )}
+                      </Button>
+                      <Dialog
+                        open={editingWorker?.id === worker.id}
+                        onOpenChange={(open) => {
+                          if (open) setEditingWorker(worker)
+                          else resetForm()
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Worker</DialogTitle>
+                          </DialogHeader>
+                          {editingWorker && (
+                            <form onSubmit={handleEdit} className="space-y-4">
+                              <div className="space-y-2">
+                                <Label>Name</Label>
+                                <Input
+                                  value={editingWorker.name}
+                                  onChange={(e) => setEditingWorker({ ...editingWorker, name: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Email</Label>
+                                <Input
+                                  type="email"
+                                  value={editingWorker.email}
+                                  onChange={(e) => setEditingWorker({ ...editingWorker, email: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Role</Label>
+                                <Select
+                                  value={editingWorker.role}
+                                  onValueChange={(value: "worker" | "admin") =>
+                                    setEditingWorker({ ...editingWorker, role: value })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="worker">Worker</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <Button type="submit" className="w-full" disabled={saving}>
+                                {saving ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  "Save Changes"
+                                )}
+                              </Button>
+                            </form>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Reset Password Dialog */}
+                      <Dialog
+                        open={resetPasswordId === worker.id}
+                        onOpenChange={(open) => {
+                          if (open) setResetPasswordId(worker.id)
+                          else resetForm()
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <Key className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Reset Password for {worker.name}</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleResetPassword} className="space-y-4">
                             <div className="space-y-2">
-                              <Label>Name</Label>
+                              <Label>New Password</Label>
                               <Input
-                                value={editingWorker.name}
-                                onChange={(e) => setEditingWorker({ ...editingWorker, name: e.target.value })}
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="Enter new password"
+                                required
                               />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Email</Label>
-                              <Input
-                                type="email"
-                                value={editingWorker.email}
-                                onChange={(e) => setEditingWorker({ ...editingWorker, email: e.target.value })}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Role</Label>
-                              <Select
-                                value={editingWorker.role}
-                                onValueChange={(value: "worker" | "admin") =>
-                                  setEditingWorker({ ...editingWorker, role: value })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="worker">Worker</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                </SelectContent>
-                              </Select>
                             </div>
                             <Button type="submit" className="w-full" disabled={saving}>
                               {saving ? (
                                 <>
                                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Saving...
+                                  Resetting...
                                 </>
                               ) : (
-                                "Save Changes"
+                                "Reset Password"
                               )}
                             </Button>
                           </form>
-                        )}
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
 
-                    {/* Reset Password Dialog */}
-                    <Dialog
-                      open={resetPasswordId === worker.id}
-                      onOpenChange={(open) => {
-                        if (open) setResetPasswordId(worker.id)
-                        else resetForm()
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <Key className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Reset Password for {worker.name}</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleResetPassword} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>New Password</Label>
-                            <Input
-                              type="password"
-                              value={newPassword}
-                              onChange={(e) => setNewPassword(e.target.value)}
-                              placeholder="Enter new password"
-                              required
-                            />
-                          </div>
-                          <Button type="submit" className="w-full" disabled={saving}>
-                            {saving ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Resetting...
-                              </>
-                            ) : (
-                              "Reset Password"
-                            )}
-                          </Button>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-
-                    <Button variant="outline" size="icon" onClick={() => handleDelete(worker.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                      <Button variant="outline" size="icon" onClick={() => handleDelete(worker.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">View only</div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

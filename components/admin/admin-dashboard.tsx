@@ -281,11 +281,11 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
           </TabsContent>
 
           <TabsContent value="sales">
-            <SalesTab />
+            <SalesTab isSuperAdmin={admin.role === "super_admin"} />
           </TabsContent>
 
           <TabsContent value="workers">
-            <WorkersTab />
+            <WorkersTab isSuperAdmin={admin.role === "super_admin"} />
           </TabsContent>
 
           <TabsContent value="clients">

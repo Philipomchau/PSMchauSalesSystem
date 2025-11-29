@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
-import { requireAdmin } from "@/lib/auth"
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
 import { checkForSuspiciousActivity, recordSuspiciousActivity } from "@/lib/suspicion"
 
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const admin = await requireAdmin()
+    const admin = await requireSuperAdmin()
     const { id } = await params
     const saleId = Number.parseInt(id)
 

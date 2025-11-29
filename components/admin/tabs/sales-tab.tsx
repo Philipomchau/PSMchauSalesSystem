@@ -18,7 +18,11 @@ import type { Sale, Worker } from "@/lib/db"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-export function SalesTab() {
+interface SalesTabProps {
+  isSuperAdmin: boolean
+}
+
+export function SalesTab({ isSuperAdmin }: SalesTabProps) {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [selectedWorker, setSelectedWorker] = useState("all")
@@ -51,7 +55,7 @@ export function SalesTab() {
       toast.success("Sale deleted successfully")
     } catch (error) {
       console.error("Delete failed:", error)
-      toast.error("Failed to delete sale. Please try again.")
+      toast.error(error instanceof Error ? error.message : "Failed to delete sale. Please try again.")
     }
   }
 
@@ -238,9 +242,11 @@ export function SalesTab() {
                           )}
                         </DialogContent>
                       </Dialog>
-                      <Button variant="outline" size="icon" onClick={() => handleDelete(sale.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      {isSuperAdmin && (
+                        <Button variant="outline" size="icon" onClick={() => handleDelete(sale.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
