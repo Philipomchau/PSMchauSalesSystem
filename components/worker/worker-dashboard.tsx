@@ -232,10 +232,11 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
                           <Input
                             id="quantity"
                             type="number"
-                            min="1"
+                            min="0.01"
+                            step="0.01"
                             value={quantity}
                             onChange={(e) => setQuantity(e.target.value)}
-                            placeholder="1"
+                            placeholder="e.g., 1 or 0.5"
                             required
                             className="flex-1"
                           />
@@ -253,7 +254,7 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="price">Unit Price (TZS)</Label>
+                        <Label htmlFor="price">Unit Price (TSh per unit)</Label>
                         <Input
                           id="price"
                           type="number"

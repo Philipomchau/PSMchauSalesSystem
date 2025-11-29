@@ -19,6 +19,9 @@ export function ClientsTab() {
     const [uploading, setUploading] = useState(false)
     const [csvContent, setCsvContent] = useState("")
     const [open, setOpen] = useState(false)
+    const [manualOpen, setManualOpen] = useState(false)
+    const [newClient, setNewClient] = useState({ name: "", phone: "", email: "" })
+    const [saving, setSaving] = useState(false)
 
     const handleDownloadTemplate = () => {
         const template = "name,phone,email\nJohn Doe,0712345678,john@example.com"
@@ -87,11 +90,97 @@ export function ClientsTab() {
         }
     }
 
+    const handleManualAdd = async () => {
+        if (!newClient.name.trim()) {
+            alert("Client name is required")
+            return
+        }
+
+        setSaving(true)
+        try {
+            const res = await fetch("/api/admin/clients", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newClient.name.trim(), phone: newClient.phone.trim() || null, email: newClient.email.trim() || null }),
+            })
+
+            if (!res.ok) throw new Error("Failed to add client")
+
+            setNewClient({ name: "", phone: "", email: "" })
+            setManualOpen(false)
+            mutate()
+            alert("Client added successfully")
+        } catch (error) {
+            console.error("Add client error:", error)
+            alert("Failed to add client")
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return (
         <Card className="border-2">
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Clients Management</CardTitle>
                 <div className="flex gap-2">
+                    <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Client
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Add New Client</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Name *</Label>
+                                    <Input
+                                        id="name"
+                                        value={newClient.name}
+                                        onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                                        placeholder="Client name"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Phone</Label>
+                                    <Input
+                                        id="phone"
+                                        value={newClient.phone}
+                                        onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                                        placeholder="0712345678"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={newClient.email}
+                                        onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                                        placeholder="client@example.com"
+                                    />
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <Button variant="outline" className="flex-1" onClick={() => setManualOpen(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button onClick={handleManualAdd} disabled={saving} className="flex-1">
+                                        {saving ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            "Add Client"
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                     <Button variant="outline" onClick={handleExport}>
                         <Download className="mr-2 h-4 w-4" />
                         Export Excel

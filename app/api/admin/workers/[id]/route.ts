@@ -71,6 +71,23 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 })
     }
 
+    // Check if worker has any sales
+    const salesCheck = await sql`
+      SELECT COUNT(*) as count 
+      FROM sales 
+      WHERE worker_id = ${workerId}
+    `
+
+    const salesCount = Number(salesCheck[0].count)
+    if (salesCount > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete worker with ${salesCount} existing sale${salesCount > 1 ? 's' : ''}. Please reassign or delete their sales first.`
+        },
+        { status: 400 }
+      )
+    }
+
     await sql`DELETE FROM workers WHERE id = ${workerId}`
 
     await logAudit(admin.id, "DELETE_WORKER", null, { name: existing[0].name, email: existing[0].email }, null)
