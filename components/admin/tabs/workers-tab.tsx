@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, Loader2, Key } from "lucide-react"
+import { Plus, Pencil, Trash2, Loader2, Key, Power, PowerOff } from "lucide-react"
 import { formatDate } from "@/lib/timezone"
 import type { Worker } from "@/lib/db"
 
@@ -127,6 +127,27 @@ export function WorkersTab() {
     }
   }
 
+  const handleToggleActive = async (worker: Worker) => {
+    const action = worker.active ? "deactivate" : "activate"
+    if (!confirm(`Are you sure you want to ${action} this worker?`)) return
+
+    try {
+      const res = await fetch(`/api/admin/workers/${worker.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !worker.active }),
+      })
+
+      if (!res.ok) throw new Error(`Failed to ${action} worker`)
+
+      mutateWorkers()
+      alert(`Worker ${action}d successfully`)
+    } catch (error) {
+      console.error("Toggle active error:", error)
+      alert(`Failed to ${action} worker`)
+    }
+  }
+
   return (
     <Card className="border-2">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -225,8 +246,19 @@ export function WorkersTab() {
                 </TableCell>
                 <TableCell className="font-mono text-sm">{formatDate(worker.created_at)}</TableCell>
                 <TableCell>
-                  <div className="flex justify-center gap-2">
-                    {/* Edit Dialog */}
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleToggleActive(worker)}
+                      title={worker.active ? "Deactivate" : "Activate"}
+                    >
+                      {worker.active ? (
+                        <Power className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <PowerOff className="h-4 w-4 text-red-600" />
+                      )}
+                    </Button>
                     <Dialog
                       open={editingWorker?.id === worker.id}
                       onOpenChange={(open) => {

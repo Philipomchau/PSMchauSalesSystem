@@ -8,14 +8,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const admin = await requireAdmin()
     const { id } = await params
     const workerId = Number.parseInt(id)
-    const { name, email, password, role } = await request.json()
+    const { name, email, password, role, active } = await request.json()
 
     const existing = await sql`SELECT * FROM workers WHERE id = ${workerId}`
     if (existing.length === 0) {
       return NextResponse.json({ error: "Worker not found" }, { status: 404 })
     }
 
-    const beforeData = { name: existing[0].name, email: existing[0].email, role: existing[0].role }
+    const beforeData = {
+      name: existing[0].name,
+      email: existing[0].email,
+      role: existing[0].role,
+      active: existing[0].active
+    }
 
     let result
     if (password) {
@@ -25,18 +30,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           name = ${name || existing[0].name},
           email = ${(email || existing[0].email).toLowerCase()},
           password_hash = ${passwordHash},
-          role = ${role || existing[0].role}
+          role = ${role || existing[0].role},
+          active = ${active !== undefined ? active : existing[0].active}
         WHERE id = ${workerId}
-        RETURNING id, name, email, role, created_at
+        RETURNING id, name, email, role, active, created_at
       `
     } else {
       result = await sql`
         UPDATE workers SET
           name = ${name || existing[0].name},
           email = ${(email || existing[0].email).toLowerCase()},
-          role = ${role || existing[0].role}
+          role = ${role || existing[0].role},
+          active = ${active !== undefined ? active : existing[0].active}
         WHERE id = ${workerId}
-        RETURNING id, name, email, role, created_at
+        RETURNING id, name, email, role, active, created_at
       `
     }
 
@@ -83,6 +90,40 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json(
         {
           error: `Cannot delete worker with ${salesCount} existing sale${salesCount > 1 ? 's' : ''}. Please reassign or delete their sales first.`
+        },
+        { status: 400 }
+      )
+    }
+
+    // Check for audit logs
+    const auditCheck = await sql`
+      SELECT COUNT(*) as count 
+      FROM audit_logs 
+      WHERE worker_id = ${workerId}
+    `
+    const auditCount = Number(auditCheck[0].count)
+    if (auditCount > 0) {
+      // Optional: We could set worker_id to NULL here if we wanted to allow deletion
+      // But for now, let's block it to be safe and consistent
+      return NextResponse.json(
+        {
+          error: `Cannot delete worker with ${auditCount} audit log records. This worker has performed actions in the system.`
+        },
+        { status: 400 }
+      )
+    }
+
+    // Check for suspicious activity
+    const suspiciousCheck = await sql`
+      SELECT COUNT(*) as count 
+      FROM suspicious_activity 
+      WHERE worker_id = ${workerId}
+    `
+    const suspiciousCount = Number(suspiciousCheck[0].count)
+    if (suspiciousCount > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete worker with ${suspiciousCount} flagged suspicious activit${suspiciousCount > 1 ? 'ies' : 'y'}.`
         },
         { status: 400 }
       )

@@ -9,6 +9,7 @@ export type Worker = {
   password_hash: string
   role: "worker" | "admin"
   created_at: string
+  active: boolean
 }
 
 export type Sale = {

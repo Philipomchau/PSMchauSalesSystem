@@ -31,7 +31,8 @@ interface ReportData {
 }
 
 export function OverviewTab() {
-  const { data: reports } = useSWR<ReportData>("/api/admin/reports?type=summary", fetcher)
+  const today = new Date().toLocaleDateString('en-CA')
+  const { data: reports } = useSWR<ReportData>(`/api/admin/reports?type=summary&startDate=${today}&endDate=${today}`, fetcher)
   const { data: suspicious } = useSWR<Array<{ id: number }>>("/api/admin/suspicious?reviewed=false", fetcher)
 
   const summary = reports?.summary
@@ -56,7 +57,7 @@ export function OverviewTab() {
 
         <Card className="border-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales Count</CardTitle>
             <TrendingUp className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>

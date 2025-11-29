@@ -26,6 +26,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
+    if (worker.active === false) {
+      return NextResponse.json({ error: "Account is inactive. Please contact admin." }, { status: 403 })
+    }
+
     await createSession(worker.id)
     await logAudit(worker.id, "LOGIN", null, null, { email: worker.email })
 
