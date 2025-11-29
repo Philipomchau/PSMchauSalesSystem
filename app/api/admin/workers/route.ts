@@ -8,7 +8,7 @@ export async function GET() {
     await requireAdmin()
 
     const result = await sql`
-      SELECT id, name, email, role, created_at FROM workers ORDER BY created_at DESC
+      SELECT id, name, email, role, active, created_at FROM workers ORDER BY created_at DESC
     `
     return NextResponse.json(result)
   } catch (error) {
@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
     const passwordHash = await hashPassword(password)
 
     const result = await sql`
-      INSERT INTO workers (name, email, password_hash, role)
-      VALUES (${name}, ${email.toLowerCase()}, ${passwordHash}, ${role})
-      RETURNING id, name, email, role, created_at
+      INSERT INTO workers (name, email, password_hash, role, active)
+      VALUES (${name}, ${email.toLowerCase()}, ${passwordHash}, ${role}, true)
+      RETURNING id, name, email, role, active, created_at
     `
 
     try {
