@@ -26,6 +26,7 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [selectedWorker, setSelectedWorker] = useState("all")
+  const [selectedClient, setSelectedClient] = useState("all")
   const [productFilter, setProductFilter] = useState("")
   const [editingSale, setEditingSale] = useState<Sale | null>(null)
   const [saving, setSaving] = useState(false)
@@ -35,12 +36,14 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
     if (startDate) params.set("startDate", new Date(startDate).toISOString())
     if (endDate) params.set("endDate", new Date(endDate).toISOString())
     if (selectedWorker !== "all") params.set("workerId", selectedWorker)
+    if (selectedClient !== "all") params.set("clientId", selectedClient)
     if (productFilter) params.set("product", productFilter)
     return `/api/sales?${params.toString()}`
   }
 
   const { data: sales, mutate: mutateSales } = useSWR<Sale[]>(buildUrl(), fetcher)
   const { data: workers } = useSWR<Worker[]>("/api/admin/workers", fetcher)
+  const { data: clients } = useSWR<{ id: number; name: string }[]>("/api/admin/clients", fetcher)
 
   const handleDelete = async (saleId: number) => {
     if (!confirm("Are you sure you want to delete this sale?")) return
@@ -117,6 +120,22 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
             </Select>
           </div>
           <div className="space-y-2">
+            <Label>Client</Label>
+            <Select value={selectedClient} onValueChange={setSelectedClient}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Clients" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Clients</SelectItem>
+                {clients?.map((client) => (
+                  <SelectItem key={client.id} value={client.id.toString()}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Product</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -137,6 +156,7 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
                 setStartDate("")
                 setEndDate("")
                 setSelectedWorker("all")
+                setSelectedClient("all")
                 setProductFilter("")
               }}
             >

@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
     const workerId = searchParams.get("workerId")
+    const clientId = searchParams.get("clientId")
     const product = searchParams.get("product")
 
     let query = `
@@ -30,6 +31,11 @@ export async function GET(request: NextRequest) {
     } else if (workerId) {
       query += ` AND s.worker_id = $${params.length + 1}`
       params.push(Number.parseInt(workerId))
+    }
+
+    if (clientId) {
+      query += ` AND s.client_id = $${params.length + 1}`
+      params.push(Number.parseInt(clientId))
     }
 
     if (startDate) {
