@@ -26,6 +26,7 @@ export type Sale = {
   worker_name?: string
   unit_type?: "piece" | "kg" | "pct" | "box"
   client_id?: number | null
+  client_name?: string | null
 }
 
 export type AuditLog = {

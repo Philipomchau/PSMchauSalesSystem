@@ -152,6 +152,7 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
               <TableRow>
                 <TableHead>Date/Time</TableHead>
                 <TableHead>Worker</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
                 <TableHead>Unit</TableHead>
@@ -166,6 +167,7 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
                 <TableRow key={sale.id}>
                   <TableCell className="font-mono text-sm">{formatDateTime(sale.sale_datetime)}</TableCell>
                   <TableCell>{sale.worker_name}</TableCell>
+                  <TableCell>{sale.client_name || "-"}</TableCell>
                   <TableCell>{sale.product_name}</TableCell>
                   <TableCell className="text-right">{sale.quantity}</TableCell>
                   <TableCell className="capitalize">{sale.unit_type || 'piece'}</TableCell>
