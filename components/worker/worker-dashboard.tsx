@@ -86,7 +86,7 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product_name: productName,
-          quantity: Number.parseInt(quantity),
+          quantity: Number.parseFloat(quantity),
           unit_price: Number.parseFloat(unitPrice),
           notes: notes || null,
           unit_type: unitType,

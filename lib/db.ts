@@ -7,7 +7,7 @@ export type Worker = {
   name: string
   email: string
   password_hash: string
-  role: "worker" | "admin"
+  role: "worker" | "admin" | "super_admin"
   created_at: string
   active: boolean
 }

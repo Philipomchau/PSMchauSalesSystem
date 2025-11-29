@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
-import { requireAdmin, hashPassword } from "@/lib/auth"
+import { requireAdmin, requireSuperAdmin, hashPassword } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
 
 export async function GET() {
@@ -19,7 +19,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await requireAdmin()
+    const admin = await requireSuperAdmin()
     const { name, email, password, role = "worker" } = await request.json()
 
     if (!name || !email || !password) {

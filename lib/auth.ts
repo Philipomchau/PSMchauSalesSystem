@@ -33,7 +33,7 @@ export async function getSession(): Promise<Worker | null> {
   if (!workerId) return null
 
   const result = await sql`
-    SELECT id, name, email, role, created_at 
+    SELECT id, name, email, role, active, created_at 
     FROM workers 
     WHERE id = ${Number.parseInt(workerId)}
   `
@@ -56,8 +56,16 @@ export async function requireAuth(): Promise<Worker> {
 
 export async function requireAdmin(): Promise<Worker> {
   const worker = await requireAuth()
-  if (worker.role !== "admin") {
+  if (worker.role !== "admin" && worker.role !== "super_admin") {
     throw new Error("Admin access required")
+  }
+  return worker
+}
+
+export async function requireSuperAdmin(): Promise<Worker> {
+  const worker = await requireAuth()
+  if (worker.role !== "super_admin") {
+    throw new Error("Super admin access required")
   }
   return worker
 }

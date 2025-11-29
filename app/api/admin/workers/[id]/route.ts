@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
-import { requireAdmin, hashPassword } from "@/lib/auth"
+import { requireAdmin, requireSuperAdmin, hashPassword } from "@/lib/auth"
 import { logAudit } from "@/lib/audit"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const admin = await requireAdmin()
+    const admin = await requireSuperAdmin()
     const { id } = await params
     const workerId = Number.parseInt(id)
     const { name, email, password, role, active } = await request.json()
