@@ -179,81 +179,92 @@ export function SalesTab({ isSuperAdmin }: SalesTabProps) {
                     {sale.notes || "-"}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-center gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="icon" onClick={() => setEditingSale(sale)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit Sale</DialogTitle>
-                          </DialogHeader>
-                          {editingSale && (
-                            <form onSubmit={handleEdit} className="space-y-4">
-                              <div className="space-y-2">
-                                <Label>Product Name</Label>
-                                <Input
-                                  value={editingSale.product_name}
-                                  onChange={(e) => setEditingSale({ ...editingSale, product_name: e.target.value })}
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
+                    {isSuperAdmin ? (
+                      <div className="flex justify-end gap-2">
+                        <Dialog
+                          open={editingSale?.id === sale.id}
+                          onOpenChange={(open) => {
+                            if (open) setEditingSale(sale)
+                            else setEditingSale(null)
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="icon">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Edit Sale</DialogTitle>
+                            </DialogHeader>
+                            {editingSale && (
+                              <form onSubmit={handleEdit} className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label>Quantity</Label>
+                                  <Label>Product Name</Label>
                                   <Input
-                                    type="number"
-                                    value={editingSale.quantity}
+                                    value={editingSale.product_name}
                                     onChange={(e) =>
-                                      setEditingSale({
-                                        ...editingSale,
-                                        quantity: Number.parseInt(e.target.value),
-                                      })
+                                      setEditingSale({ ...editingSale, product_name: e.target.value })
                                     }
                                   />
                                 </div>
-                                <div className="space-y-2">
-                                  <Label>Unit Price</Label>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={editingSale.unit_price}
-                                    onChange={(e) =>
-                                      setEditingSale({
-                                        ...editingSale,
-                                        unit_price: Number.parseFloat(e.target.value),
-                                      })
-                                    }
-                                  />
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label>Quantity</Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={editingSale.quantity}
+                                      onChange={(e) =>
+                                        setEditingSale({
+                                          ...editingSale,
+                                          quantity: Number.parseFloat(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Unit Price</Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={editingSale.unit_price}
+                                      onChange={(e) =>
+                                        setEditingSale({
+                                          ...editingSale,
+                                          unit_price: Number.parseFloat(e.target.value),
+                                        })
+                                      }
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                              <Button type="submit" className="w-full" disabled={saving}>
-                                {saving ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                  </>
-                                ) : (
-                                  "Save Changes"
-                                )}
-                              </Button>
-                            </form>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                      {isSuperAdmin && (
+                                <Button type="submit" className="w-full" disabled={saving}>
+                                  {saving ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Saving...
+                                    </>
+                                  ) : (
+                                    "Save Changes"
+                                  )}
+                                </Button>
+                              </form>
+                            )}
+                          </DialogContent>
+                        </Dialog>
                         <Button variant="outline" size="icon" onClick={() => handleDelete(sale.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground text-right">View only</div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
               {(!sales || sales.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                     No sales found
                   </TableCell>
                 </TableRow>
