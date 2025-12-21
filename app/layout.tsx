@@ -1,6 +1,7 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 
+import { PWAInstall } from "@/components/pwa-install"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
@@ -22,12 +23,17 @@ export const metadata: Metadata = {
   description: "Complete sales tracking and management for your business",
   generator: "v0.app",
   manifest: "/manifest.json",
-  themeColor: "#ef4444",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   icons: {
     icon: "/favicon.png",
     apple: "/apple-touch-icon.png",
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#ef4444",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({
@@ -40,6 +46,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
+          <PWAInstall />
           <Analytics />
         </ThemeProvider>
       </body>
