@@ -18,6 +18,7 @@ import { ReportsTab } from "@/components/admin/tabs/reports-tab"
 import { SuspiciousTab } from "@/components/admin/tabs/suspicious-tab"
 import { AuditTab } from "@/components/admin/tabs/audit-tab"
 import { ClientsTab } from "@/components/admin/tabs/clients-tab"
+import { ThemeToggle } from "@/components/theme-toggle"
 import type { Worker } from "@/lib/db"
 
 interface AdminDashboardProps {
@@ -234,7 +235,8 @@ export function AdminDashboard({ admin }: AdminDashboardProps) {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <ThemeToggle />
+            <Button variant="outline" size="sm" onClick={handleLogout} className="bg-transparent">
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>

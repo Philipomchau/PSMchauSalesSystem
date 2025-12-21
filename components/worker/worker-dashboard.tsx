@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LogOut, Plus, History, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { formatDateTime } from "@/lib/timezone"
+import { ThemeToggle } from "@/components/theme-toggle"
 import type { Worker, Sale } from "@/lib/db"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -140,10 +141,13 @@ export function WorkerDashboard({ worker }: WorkerDashboardProps) {
             <h1 className="text-xl font-bold text-foreground">SALES PORTAL</h1>
             <p className="text-sm text-muted-foreground">Welcome, {worker.name}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
